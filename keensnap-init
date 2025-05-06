@@ -4,7 +4,7 @@ source /opt/root/KeenSnap/config.sh
 
 SCRIPT_VERSION="v1.0.4"
 PATH_SNAPD="/opt/etc/ndm/schedule.d/99-keensnap.sh"
-REMOTE_VERSION=$(curl -s "https://api.github.com/repos/spatiumstas/keensnap/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+REMOTE_VERSION=$(curl -s "https://api.github.com/repos/DFR11/keensnap/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
 date="backup$(date +%Y-%m-%d_%H-%M)"
 items=""
 statuses=""
@@ -13,7 +13,7 @@ statuses=""
   start)
     if [ -n "$2" ]; then
       SCHEDULE="$2"
-      echo "Запуск KeenSnap (расписание: $SCHEDULE)"
+      echo "启动 KeenSnap（计划：$SCHEDULE）"
 
       log() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') [INFO] $*"
@@ -68,13 +68,13 @@ statuses=""
 
         if [ $current_size -gt $max_size ]; then
           sed -i '1,100d' "$log_file"
-          log "Лог-файл был обрезан на первые 100 строк."
+          log "日志文件前100行已被截断。"
         fi
       }
 
       send_to_telegram() {
         if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
-          log "Токен бота или ID чата не заданы. Отправка в Telegram пропущена."
+          log "未设置机器人令牌或聊天 ID。跳过发送到 Telegram。"
           return 1
         fi
 
@@ -117,7 +117,7 @@ statuses=""
           rm -f "$file_path"
 
           if [ "$archive_size" -le "$max_size" ]; then
-            log "Отправка архива: $new_archive"
+            log "发送归档文件：$new_archive"
             response=$(curl -s -o /tmp/telegram_response -w "%{http_code}" -F "chat_id=$chat_id" \
               -F "document=@$new_archive" \
               -F "caption=$escaped_caption" \
@@ -128,13 +128,13 @@ statuses=""
             rm -f /tmp/telegram_response "$new_archive"
           else
             get_coreutils-split
-            log "Архив превышает 49МБ, разбиваю на части..."
+            log "归档文件超过49MB，正在拆分..."
             split -b "$max_size" -d --numeric-suffixes=001 --suffix-length=3 "$new_archive" "${new_archive}."
 
             local part_number=1
             for part_file in "${new_archive}."*; do
-              local part_caption="[[Часть $part_number]] $escaped_caption"
-              log "Отправка части: $part_file"
+              local part_caption="[[第 $part_number 部分]] $escaped_caption"
+              log "发送部分：$part_file"
               response=$(curl -s -o /tmp/telegram_response -w "%{http_code}" -F "chat_id=$chat_id" \
                 -F "document=@$part_file" \
                 -F "caption=$part_caption" \
@@ -145,7 +145,7 @@ statuses=""
               rm -f /tmp/telegram_response "$part_file"
 
               if [ "$response" -ne 200 ]; then
-                error "Ошибка отправки части $part_file (HTTP $response): $response_body"
+                error "发送部分 $part_file 时出错（HTTP $response）：$response_body"
                 rm -f "$new_archive"
                 return 1
               fi
@@ -156,10 +156,10 @@ statuses=""
         fi
 
         if [ "$response" -eq 200 ]; then
-          success "Сообщение успешно отправлено в Telegram"
+          success "消息已成功发送到 Telegram"
           return 0
         else
-          error "Ошибка отправки в Telegram (HTTP $response). Ответ сервера: $response_body"
+          error "发送到 Telegram 时出错（HTTP $response）。服务器响应：$response_body"
           return 1
         fi
       }
@@ -169,18 +169,16 @@ statuses=""
         local item_name="startup-config"
 
         if [ -n "$SELECTED_DRIVE" ]; then
-
-          log "Бэкап $item_name..."
+          log "备份 $item_name..."
           local device_uuid=$(echo "$SELECTED_DRIVE" | awk -F'/' '{print $NF}')
           local folder_path="$device_uuid:/$date"
           local backup_file="$folder_path/${DEVICE_ID}_${FW_VERSION}_$item_name.txt"
           ndmc -c "copy $item_name $backup_file"
           if [ $? -eq 0 ]; then
-            success "$item_name сохранён"
+            success "$item_name 已保存"
             success=0
           else
-            error "Ошибка при сохранении $item_name"
-
+            error "保存 $item_name 时出错"
           fi
         fi
         items="$items $item_name"
@@ -192,16 +190,16 @@ statuses=""
         local item_name="Entware"
 
         if [ -n "$SELECTED_DRIVE" ]; then
-          log "Бэкап $item_name..."
+          log "备份 $item_name..."
           local backup_file="$SELECTED_DRIVE/$date/$(get_architecture)_$item_name.tar.gz"
           tar_output=$(tar cvzf "$backup_file" -C /opt . 2>&1)
           log_operation=$(echo "$tar_output" | tail -n 2)
 
           if echo "$log_operation" | grep -iq "error\|no space left on device"; then
-            log "Ошибка при сохранении $item_name:" "$RED"
+            log "保存 $item_name 时出错：" "$RED"
             echo "$log_operation"
           else
-            success "$item_name сохранён"
+            success "$item_name 已保存"
             success=0
           fi
         fi
@@ -218,15 +216,15 @@ statuses=""
           opkg install wireguard-tools
         fi
         if [ -n "$SELECTED_DRIVE" ]; then
-          log "Бэкап $item_name..."
+          log "备份 $item_name..."
           local folder_path="$SELECTED_DRIVE/$date"
           local backup_file="$folder_path/$item_name.txt"
           wg show all private-key >"$backup_file"
           if [ $? -eq 0 ]; then
-            success "$item_name сохранён"
+            success "$item_name 已保存"
             success=0
           else
-            error "Ошибка при сохранении $item_name"
+            error "保存 $item_name 时出错"
           fi
           items="$items $item_name"
           statuses="$statuses $success"
@@ -237,16 +235,16 @@ statuses=""
         local success=1
         local item_name="firmware"
         if [ -n "$SELECTED_DRIVE" ]; then
-          log "Бэкап $item_name..."
+          log "备份 $item_name..."
           local device_uuid=$(echo "$SELECTED_DRIVE" | awk -F'/' '{print $NF}')
           local folder_path="$device_uuid:/$date"
           local backup_file="$folder_path/${DEVICE_ID}_${FW_VERSION}_$item_name.bin"
           ndmc -c "copy flash:/$item_name $backup_file"
           if [ $? -eq 0 ]; then
-            success "$item_name сохранена"
+            success "$item_name 已保存"
             success=0
           else
-            error "Ошибка при сохранении $item_name"
+            error "保存 $item_name 时出错"
           fi
         fi
         items="$items $item_name"
@@ -280,7 +278,7 @@ statuses=""
         fi
 
         if [ "$backup_performed" -eq 0 ]; then
-          log "Ни один из вариантов бэкапа не выбран"
+          log "未选择任何备份选项"
           return 1
         fi
 
@@ -288,21 +286,21 @@ statuses=""
         if [ -n "$SELECTED_DRIVE" ] && [ -d "$SELECTED_DRIVE/$date" ]; then
           cp "$LOG_FILE" "$SELECTED_DRIVE/$date/backup_log.txt"
           archive_path="$SELECTED_DRIVE/${DEVICE_ID}_$date.tar.gz"
-          log "Создание архива..."
+          log "创建归档文件..."
           tar -czf "$archive_path" -C "$SELECTED_DRIVE" "$date"
           if [ $? -ne 0 ]; then
-            error "Ошибка при создании архива"
-            send_to_telegram "Ошибка при создании архива" "$SELECTED_DRIVE/$date/backup_log.txt"
+            error "创建归档文件时出错"
+            send_to_telegram "创建归档文件时出错" "$SELECTED_DRIVE/$date/backup_log.txt"
             rm -rf "$archive_path"
             return 1
           fi
-          success "Архив создан"
+          success "归档文件已创建"
         else
-          error "Невозможно создать архив: папка с бэкапами не найдена."
+          error "无法创建归档文件：未找到备份文件夹。"
           return 1
         fi
 
-        local report="Бэкап $DEVICE ($DEVICE_ID) выполнен:"$'\n\n'
+        local report="设备 $DEVICE（$DEVICE_ID）备份完成:"$'\n\n'
         local i=1
         for item in $items; do
           local status_value=$(echo $statuses | cut -d' ' -f$i)
@@ -320,9 +318,9 @@ statuses=""
 
         if [ "$DELETE_ARCHIVE_AFTER_BACKUP" = "true" ]; then
           rm -rf "$archive_path"
-          log "Архив удалён"
+          log "归档文件已删除"
         else
-          log "Архив сохранён: $archive_path"
+          log "归档文件已保存：$archive_path"
         fi
       }
 
@@ -333,17 +331,17 @@ statuses=""
       main() {
         clean_log "$LOG_FILE"
         get_device_info
-        log "Запуск скрипта для расписания $SCHEDULE"
+        log "启动脚本用于计划 $SCHEDULE"
         create_backup_and_send_report
         delete_temp_folder
-        log "Скрипт завершил работу"
+        log "脚本执行完毕"
       }
 
       check_update() {
         local local_num=$(echo "${SCRIPT_VERSION#v}" | awk -F. '{print $1*1000000 + $2*10000 + $3*100 + ($4 == "" ? 0 : $4)}')
         local remote_num=$(echo "${REMOTE_VERSION#v}" | awk -F. '{print $1*1000000 + $2*10000 + $3*100 + ($4 == "" ? 0 : $4)}')
         if [ "$remote_num" -gt "$local_num" ]; then
-          log "Доступна новая версия: $REMOTE_VERSION. Обновляюсь..."
+          log "检测到新版本：$REMOTE_VERSION。正在更新..."
           keensnap "script_update"
         fi
       }
