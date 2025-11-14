@@ -3,7 +3,7 @@ name: Translate Comments
 on:
   push:
     branches:
-      - main  # 可根据需要指定分支
+      - main  # 指定分支
   workflow_dispatch:  # 允许手动触发
 
 jobs:
@@ -16,12 +16,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: '3.8'  # 或选择其他稳定版本
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install googletrans==4.0.0-rc1
+          pip install deep-translator
 
       - name: Run translation script
         run: python translate_comments.py
