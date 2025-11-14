@@ -1,14 +1,14 @@
-#!/bin/sh
-# 加载配置文件
+# !/bin/sh
+# Load configuration file
 source /opt/root/KeenSnap/config.sh
 
-# 定义颜色
+# Define color
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# 用户信息
+# User information
 USERNAME="spatiumstas"
 REPO="keensnap"
 SCRIPT="keensnap.sh"
@@ -22,7 +22,7 @@ PATH_SCHEDULE="/opt/etc/ndm/schedule.d/99-keensnap.sh"
 CONFIG_TEMPLATE="config.template"
 SCRIPT_VERSION=$(grep -oP 'SCRIPT_VERSION="\K[^"]+' $KEENSNAP_DIR/$SNAPD)
 
-# 打印主菜单
+# Print main menu
 print_menu() {
   printf "\033c"
   printf "${CYAN}"
@@ -50,7 +50,7 @@ EOF
   echo ""
 }
 
-# 主菜单逻辑
+# Main menu logic
 main_menu() {
   print_menu
   read -p "请选择操作: " choice branch
