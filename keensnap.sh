@@ -7,6 +7,7 @@ GREEN='\033[1;32m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 USERNAME="spatiumstas"
+TRANSLATOR="DFR11"
 REPO="keensnap"
 SCRIPT="keensnap.sh"
 TMP_DIR="/tmp"
