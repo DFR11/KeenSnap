@@ -11,7 +11,7 @@
 
 1. В `SSH` ввести команду
 ```shell
-opkg update && opkg install curl && curl -L -s "https://raw.githubusercontent.com/spatiumstas/keensnap/main/install.sh" > /tmp/install.sh && sh /tmp/install.sh
+opkg update && opkg install curl && curl -L -s "https://gh-proxy.org/https://github.com/DFR11/KeenSnap/blob/main/install.sh" > /tmp/install.sh && sh /tmp/install.sh
 ```
 
 2. В скрипте выбрать настройку
