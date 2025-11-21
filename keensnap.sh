@@ -31,24 +31,24 @@ print_menu() {
                                        |_|
 EOF
   if [ ! -f $KEENSNAP_DIR/$SNAPD ]; then
-    printf "${RED}Конфигурация не настроена${NC}\n\n"
+    printf "${RED}Configuration not configured${NC}\n\n"
   else
-    printf "${RED}Версия скрипта: ${NC}%s\n\n" "$SCRIPT_VERSION by ${USERNAME}"
+    printf "${RED}Script version: ${NC}%s\n\n" "$SCRIPT_VERSION by ${USERNAME}"
   fi
-  echo "1. Настроить конфигурацию"
-  echo "2. Параметры бэкапа"
-  echo "3. Подключить Telegram"
-  echo "4. Ручной бэкап"
+  echo "1. Set up configuration"
+  echo "2. Backup options"
+  echo "3. Connect Telegram"
+  echo "4. Manual backup"
   echo ""
-  echo "77. Удалить скрипт"
-  echo "99. Обновить скрипт"
-  echo "00. Выход"
+  echo "77. Delete script"
+  echo "99. Update script"
+  echo "00. Exit"
   echo ""
 }
 
 main_menu() {
   print_menu
-  read -p "Выберите действие: " choice branch
+  read -p "Select action:" choice branch
   echo ""
   choice=$(echo "$choice" | tr -d '\032' | tr -d '[A-Z]')
 
@@ -65,7 +65,7 @@ main_menu() {
     999) script_update "dev" ;;
     00) exit ;;
     *)
-      echo "Неверный выбор. Попробуйте снова."
+      echo "Wrong choice. Try again."
       sleep 1
       main_menu
       ;;
@@ -82,7 +82,7 @@ print_message() {
 
 exit_function() {
   echo ""
-  read -n 1 -s -r -p "Для возврата нажмите любую клавишу..."
+  read -n 1 -s -r -p "To go back, press any key..."
   pkill -P $$ 2>/dev/null
   exec "$KEENSNAP_DIR/$SCRIPT"
 }
@@ -142,7 +142,7 @@ EOF
   fi
 
   if [ -z "$schedules" ]; then
-    print_message "Расписания не найдены" "$RED"
+    print_message "No schedules found" "$RED"
   else
 
     echo ""
@@ -151,7 +151,7 @@ EOF
 
     SCHEDULE_SELECTED=$(echo "$schedules" | tr ' ' '\n' | grep "^$choice:" | cut -d ':' -f2)
     if [ -z "$SCHEDULE_SELECTED" ]; then
-      print_message "Неверный выбор" "$RED"
+      print_message "Wrong choice" "$RED"
       exit_function
     fi
   fi
@@ -164,12 +164,12 @@ update_config() {
   CONFIG_TEMPLATE_URL="https://raw.githubusercontent.com/$USERNAME/$REPO/main/$CONFIG_TEMPLATE"
   TEMP_TEMPLATE_FILE="$TMP_DIR/$CONFIG_TEMPLATE"
 
-  [ -z "$silent" ] && print_message "Обновляю шаблон конфигурации..."
+  [ -z "$silent" ] && print_message "Updating the configuration template..."
 
   HTTP_STATUS=$(curl -s -o "$TEMP_TEMPLATE_FILE" -w "%{http_code}" "$CONFIG_TEMPLATE_URL")
 
   if [ "$HTTP_STATUS" -ne 200 ]; then
-    [ -z "$silent" ] && print_message "Не удалось скачать шаблон конфигурации. HTTP-статус: $HTTP_STATUS" "$RED"
+    [ -z "$silent" ] && print_message "Failed to download configuration template. HTTP status: $HTTP_STATUS" "$RED"
     rm -f "$TEMP_TEMPLATE_FILE"
     exit_function
   fi
@@ -177,7 +177,7 @@ update_config() {
   config_template=$(cat "$TEMP_TEMPLATE_FILE")
 
   if [ ! -f "$CONFIG_FILE" ]; then
-    [ -z "$silent" ] && print_message "Создаю конфигурационный файл..." "$CYAN"
+    [ -z "$silent" ] && print_message "I'm creating a configuration file..." "$CYAN"
     {
       mkdir -p "$KEENSNAP_DIR"
       echo "$config_template" >"$CONFIG_FILE"
@@ -205,19 +205,19 @@ setup_config() {
     chmod +x "$KEENSNAP_DIR/$SNAPD"
   fi
 
-  if ! select_schedule "Выберите номер расписания:"; then
+  if ! select_schedule "Select schedule number:"; then
     exit_function
   fi
 
-  print_message "Вы выбрали: $SCHEDULE_SELECTED" "$CYAN"
+  print_message "You have selected: $SCHEDULE_SELECTED" "$CYAN"
 
   sed -i "s|^SCHEDULE_NAME=.*|SCHEDULE_NAME=\"$SCHEDULE_SELECTED\"|" "$CONFIG_FILE"
-  identify_external_drive "Выберите накопитель для бэкапа:"
+  identify_external_drive "Select a backup drive:"
   sed -i "s|^SELECTED_DRIVE=.*|SELECTED_DRIVE=\"$selected_drive\"|" "$CONFIG_FILE"
-  print_message "Вы выбрали: $selected_drive" "$CYAN"
+  print_message "You have selected: $selected_drive" "$CYAN"
 
   dos2unix "$CONFIG_FILE"
-  print_message "Конфигурация сохранена в $CONFIG_FILE" "$GREEN"
+  print_message "Configuration saved in $CONFIG_FILE" "$GREEN"
   exit_function
 }
 
@@ -231,12 +231,12 @@ get_options() {
 }
 select_backup_options() {
   check_config
-  echo "Текущие параметры:"
+  echo "Current settings:"
 
   options="BACKUP_STARTUP_CONFIG BACKUP_FIRMWARE BACKUP_ENTWARE BACKUP_WG_PRIVATE_KEY DELETE_ARCHIVE_AFTER_BACKUP SEND_BACKUP_TG"
   get_options
   echo ""
-  read -p "Выберите, какие параметры изменить, разделяя их пробелом: " user_choice
+  read -p "Select which options to change, separated by a space:" user_choice
 
   for choice in $user_choice; do
     if [ "$choice" -ge 1 ] && [ "$choice" -le $(echo "$options" | wc -w) ]; then
@@ -249,34 +249,34 @@ select_backup_options() {
         sed -i "s/^$selected_option=.*/$selected_option=true/" "$CONFIG_FILE"
       fi
     else
-      echo "Неверный выбор: $choice."
+      echo "Wrong choice: $choice."
       exit_function
     fi
   done
 
-  print_message "Настройки обновлены" "$GREEN"
-  echo "Новые параметры:"
+  print_message "Settings updated" "$GREEN"
+  echo "New options:"
   get_options
   exit_function
 }
 
 setup_telegram() {
   check_config
-  read -p "Введите токен бота Telegram: " BOT_TOKEN
+  read -p "Enter Telegram bot token:" BOT_TOKEN
   BOT_TOKEN=$(echo "$BOT_TOKEN" | sed 's/^[ \t]*//;s/[ \t]*$//')
-  read -p "Введите ID пользователя/чата Telegram: " CHAT_ID
+  read -p "Enter Telegram user/chat ID:" CHAT_ID
   CHAT_ID=$(echo "$CHAT_ID" | sed 's/^[ \t]*//;s/[ \t]*$//')
   sed -i "s|^BOT_TOKEN=.*|BOT_TOKEN=\"$BOT_TOKEN\"|" "$CONFIG_FILE"
   sed -i "s|^CHAT_ID=.*|CHAT_ID=\"$CHAT_ID\"|" "$CONFIG_FILE"
 
   dos2unix "$CONFIG_FILE"
-  print_message "Конфигурация сохранена в $CONFIG_FILE" "$GREEN"
+  print_message "Configuration saved in $CONFIG_FILE" "$GREEN"
   exit_function
 }
 
 check_config() {
   if [ ! -f "$CONFIG_FILE" ]; then
-    print_message "Не выполнена начальная конфигурация" "$RED"
+    print_message "Initial configuration failed" "$RED"
     exit_function
   fi
 }
@@ -298,11 +298,11 @@ identify_external_drive() {
   current_manufacturer=""
 
   if [ -z "$media_output" ]; then
-    print_message "Не удалось получить список накопителей" "$RED"
+    print_message "Failed to get drive list" "$RED"
     return 1
   fi
 
-  echo "0. Встроенное хранилище (может не хватить места) $message2"
+  echo "0. Built-in storage (may not have enough space) $message2"
 
   while IFS= read -r line; do
     case "$line" in
@@ -373,19 +373,19 @@ EOF
   else
     selected_drive=$(echo "$uuids" | awk -v choice="$choice" '{split($0, a, " "); print a[choice]}')
     if [ -z "$selected_drive" ]; then
-      print_message "Неверный выбор" "$RED"
+      print_message "Wrong choice" "$RED"
       exit_function
     fi
     selected_drive="/tmp/mnt/$selected_drive"
 
     while true; do
       echo ""
-      echo "Содержимое $selected_drive:"
-      folders_list=$(find "$selected_drive" -maxdepth 1 -type d 2>/dev/null | grep -v "^$selected_drive$" | grep -v '/\\.' | grep -vE '/[А-Яа-яЁё]' | sort)
+      echo "Contents of $selected_drive:"
+      folders_list=$(find "$selected_drive" -maxdepth 1 -type d 2>/dev/null | grep -v "^$selected_drive$" | grep -v '/\\.' | grep -vE '/[A-Ya-YaYo]' | sort)
       set -- $folders_list
       folder_count=$#
       if [ $folder_count -eq 0 ]; then
-        printf "${RED}Директория пустая ${NC}\n"
+        printf "${RED}The directory is empty ${NC}\n"
       else
         i=1
         for folder in "$@"; do
@@ -394,7 +394,7 @@ EOF
           i=$((i+1))
         done
       fi
-      read -p "Выберите папку, 0 — выбрать текущую, 00 — уровень назад: " folder_choice
+      read -p "Select a folder, 0 - select current, 00 - level back:" folder_choice
       if [ -z "$folder_choice" ] || [ "$folder_choice" = "0" ]; then
         break
       elif echo "$folder_choice" | grep -Eq '^[0-9]+$' && [ "$folder_choice" -ge 1 ] && [ "$folder_choice" -le "$folder_count" ]; then
@@ -402,19 +402,19 @@ EOF
       elif [ "$folder_choice" = "00" ] && [ "$selected_drive" != "/tmp/mnt/$uuid" ]; then
         selected_drive=$(dirname "$selected_drive")
       else
-        echo "Неверный выбор. Попробуйте снова."
+        echo "Wrong choice. Try again."
       fi
     done
   fi
 }
 
 remove_script() {
-  echo "Удаляю все файлы и выхожу из скрипта..."
+  echo "I delete all files and exit the script..."
   rm -rf "$KEENSNAP_DIR" 2>/dev/null
   rm -f "$PATH_SCHEDULE" 2>/dev/null
   rm -f "$OPT_DIR/bin/$REPO" 2>/dev/null
 
-  print_message "Успешно удалено" "$GREEN"
+  print_message "Successfully deleted" "$GREEN"
   cleanup
 }
 
@@ -440,14 +440,14 @@ script_update() {
       ln -s "$KEENSNAP_DIR/$SCRIPT" "$OPT_DIR/bin/$REPO"
     fi
     if [ "$BRANCH" = "dev" ]; then
-      print_message "Скрипт успешно обновлён на $BRANCH ветку..." "$GREEN"
+      print_message "The script has been successfully updated to the $BRANCH branch..." "$GREEN"
     else
-      print_message "Скрипт успешно обновлён" "$GREEN"
+      print_message "The script has been successfully updated" "$GREEN"
     fi
     sleep 1
     $KEENSNAP_DIR/$SCRIPT update_config
   else
-    print_message "Ошибка при скачивании скрипта" "$RED"
+    print_message "Error downloading script" "$RED"
   fi
 }
 
