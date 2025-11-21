@@ -13,16 +13,16 @@ if ! opkg list-installed | grep -q "^curl"; then
   opkg install curl
 fi
 
-curl -L -s "https://raw.githubusercontent.com/spatiumstas/$REPO/main/$SCRIPT" --output $TMP_DIR/$SCRIPT
+curl -L -s "https://raw.githubusercontent.com/DFR11/$REPO/main/$SCRIPT" --output $TMP_DIR/$SCRIPT
 mkdir -p "$KEENSNAP_DIR"
 mv "$TMP_DIR/$SCRIPT" "$KEENSNAP_DIR/$SCRIPT"
 cd $OPT_DIR/bin
 ln -sf $KEENSNAP_DIR/$SCRIPT $OPT_DIR/bin/$REPO
 
-curl -L -s "https://raw.githubusercontent.com/spatiumstas/$REPO/main/$SNAPD" --output $TMP_DIR/$SNAPD
+curl -L -s "https://raw.githubusercontent.com/DFR11/$REPO/main/$SNAPD" --output $TMP_DIR/$SNAPD
 mv "$TMP_DIR/$SNAPD" "$KEENSNAP_DIR/$SNAPD"
 
-curl -L -s "https://raw.githubusercontent.com/spatiumstas/$REPO/main/$CONFIG" --output $TMP_DIR/$CONFIG
+curl -L -s "https://raw.githubusercontent.com/DFR11/$REPO/main/$CONFIG" --output $TMP_DIR/$CONFIG
 mv "$TMP_DIR/$CONFIG" "$KEENSNAP_DIR/config.sh"
 
 chmod -R +x "$KEENSNAP_DIR"
