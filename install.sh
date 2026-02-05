@@ -21,7 +21,7 @@ packages_checker() {
     fi
   done
   if [ -n "$missing" ]; then
-    print_message "Устанавливаем:$missing"
+    print_message "Set:$missing"
     opkg update >/dev/null 2>&1
     opkg install $missing
     echo ""
