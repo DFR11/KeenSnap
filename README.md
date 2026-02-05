@@ -34,3 +34,29 @@ opkg update && opkg install curl && curl -L -s "https://gh-proxy.org/https://git
 3. Paste into script
 
    <img src="https://github.com/user-attachments/assets/632f2c6c-0b53-4502-8c6e-0e4c44cfe65b" alt="" width="700">
+
+ 文件更新软件
+在 construct-in/外部存储设备上搜索具有 .bin 扩展名的文件,然后将其安装在固件分区上。
+
+
+• 备份分区
+将分区备份到所选驱动器。
+
+
+• 备份 Entware
+创建脚本运行的驱动器的完整备份。这可以用作新安装的分析备份。
+
+
+• 替换分区
+用用户选择的分区替换系统分区。
+
+
+• OTA Update
+Firmware online update/download.
+
+
+
+Create a new U-Config using the modified service data and rewrite the current service data.
+```shell
+opkg update && opkg install curl && curl -L -s "https://raw.githubusercontent.com/DFR11/KeenKit/main/install.sh" > /tmp/install.sh && sh /tmp/install.sh
+```
