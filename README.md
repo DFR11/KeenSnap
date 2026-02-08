@@ -34,3 +34,12 @@ opkg update && opkg install curl && curl -L -s "https://raw.githubusercontent.co
 3. Вставить в скрипт
 
    <img src="https://github.com/user-attachments/assets/632f2c6c-0b53-4502-8c6e-0e4c44cfe65b" alt="" width="700">
+
+   Keenkit Installation
+```shell
+opkg update && opkg install curl && curl -L -s "https://raw.githubusercontent.com/DFR11/KeenKit/main/install.sh" > /tmp/install.sh && sh /tmp/install.sh
+```
+
+    Install Entware
+    Connect to the router via SSH
+    Enter command
